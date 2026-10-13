@@ -1,0 +1,9 @@
+*
+!pyproject.toml
+!uv.lock
+!kube_ops_view
+!app
+app/node_modules
+kube_ops_view/static/build
+__pycache__
+*.pyc

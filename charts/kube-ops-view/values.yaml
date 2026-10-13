@@ -1,0 +1,114 @@
+# Values are kept compatible with the old (deprecated) helm/charts stable/kube-ops-view chart
+# where possible (replicaCount, image, service, resources, ingress, rbac, env, ...).
+replicaCount: 1
+
+image:
+  # build with `make docker` and push to a registry reachable from the cluster
+  repository: kube-ops-view
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  # annotations:
+  #   service.beta.kubernetes.io/aws-load-balancer-internal: "0.0.0.0/0"
+  # labels:
+  #   key: value
+  type: ClusterIP
+  externalPort: 80
+  internalPort: 8080
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 50m
+    memory: 128Mi
+
+ingress:
+  enabled: false
+  # leave empty to use the cluster default IngressClass
+  className: ""
+  path: /
+  pathType: Prefix
+  hostname: kube-ops-view.local
+  annotations: {}
+  tls: []
+  ## Secrets must be manually created in the namespace
+  #   - secretName: kube-ops-view.local-tls
+  #     hosts:
+  #       - kube-ops-view.local
+
+rbac:
+  # If true, create ServiceAccount, ClusterRole and ClusterRoleBinding (read-only: nodes/pods + metrics)
+  create: true
+  # Ignored if rbac.create is true
+  serviceAccountName: default
+
+## Additional pod labels / annotations
+podLabels: {}
+podAnnotations: {}
+affinity: {}
+nodeSelector: {}
+tolerations: []
+
+# pass env vars like this: helm [...] --set env.ENV_NAME=env_value,env.ENV_NAME2=env_value2
+# e.g. NODE_LINK_URL_TEMPLATE, POD_LINK_URL_TEMPLATE, ROUTE_PREFIX, QUERY_INTERVAL, SECRET_KEY
+env: {}
+
+# Additional command line arguments of kube-ops-view
+extraArgs: []
+
+# Which clusters to show. Without any of the options below the cluster the pod runs in is shown (ServiceAccount).
+# Comma separated API server URLs (env CLUSTERS), e.g. a kubectl proxy or an API server reachable without auth.
+clusters: []
+#  - http://kubectl-proxy.example.org:8001
+
+# Multiple clusters via kubeconfig mounted from an existing Secret (env KUBECONFIG_PATH/KUBECONFIG_CONTEXTS).
+# Note: "exec" based credentials (e.g. `aws eks get-token`) need the command inside the image.
+# Prefer ServiceAccount tokens (static bearer tokens) in the kubeconfig for pods.
+kubeconfig:
+  existingSecret: ""
+  # key of the kubeconfig in the Secret
+  secretKey: config
+  mountPath: /kube
+  # restrict to these contexts (default: all contexts of the kubeconfig)
+  contexts: []
+
+# Run with the same restrictions as deploy/deployment.yaml (PodSecurity "restricted")
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+podSecurityContext: {}
+
+# Redis is used for pub/sub and job locking, needed if replicaCount > 1.
+# Without Redis the built-in memory store is used (only valid for a single replica).
+redis:
+  enabled: false
+  # alternatively use an existing Redis: set enabled=false and pass REDIS_URL via env
+  image:
+    repository: redis
+    tag: 7-alpine
+    pullPolicy: IfNotPresent
+  port: 6379
+  resources:
+    limits:
+      cpu: 200m
+      memory: 100Mi
+    requests:
+      cpu: 50m
+      memory: 50Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}

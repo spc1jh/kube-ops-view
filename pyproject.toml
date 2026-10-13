@@ -1,0 +1,34 @@
+[project]
+name = "kube-ops-view"
+version = "26.10.0.dev0"
+description = "Kubernetes Operational View - read-only system dashboard for multiple K8s clusters"
+authors = [{ name = "Henning Jacobs", email = "henning@jacobs1.de" }]
+license = { text = "GPL-3.0-or-later" }
+readme = "README.md"
+requires-python = ">=3.12,<4"
+dependencies = [
+    "click",
+    "flask",
+    "flask-dance",
+    "gevent",
+    "json-delta>=2.0",
+    "kubernetes",
+    "redis",
+    "requests",
+    "urllib3>=2",
+]
+
+[dependency-groups]
+dev = [
+    "fakeredis",
+    "pytest",
+    "pytest-cov",
+    "pre-commit",
+]
+
+[tool.uv]
+# kube-ops-view is run as `python -m kube_ops_view` from the source tree
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kube-ops-view.fullname" . }}
+  labels:
+    {{- include "kube-ops-view.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "kube-ops-view.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "kube-ops-view.labels" . | nindent 8 }}
+        {{- include "kube-ops-view.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "kube-ops-view.serviceAccountName" . | quote }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- with .Values.extraArgs }}
+        args:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        env:
+        {{- if .Values.redis.enabled }}
+        - name: REDIS_URL
+          value: {{ printf "redis://%s-redis:%v" (include "kube-ops-view.fullname" .) .Values.redis.port | quote }}
+        {{- end }}
+        {{- if .Values.clusters }}
+        - name: CLUSTERS
+          value: {{ join "," .Values.clusters | quote }}
+        {{- end }}
+        {{- if .Values.kubeconfig.existingSecret }}
+        - name: KUBECONFIG_PATH
+          value: {{ printf "%s/%s" (.Values.kubeconfig.mountPath | trimSuffix "/") .Values.kubeconfig.secretKey | quote }}
+        {{- if .Values.kubeconfig.contexts }}
+        - name: KUBECONFIG_CONTEXTS
+          value: {{ join "," .Values.kubeconfig.contexts | quote }}
+        {{- end }}
+        {{- end }}
+        {{- range $key, $value := .Values.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- with .Values.securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.internalPort }}
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 5
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        {{- if .Values.kubeconfig.existingSecret }}
+        volumeMounts:
+        - name: kubeconfig
+          mountPath: {{ .Values.kubeconfig.mountPath }}
+          readOnly: true
+        {{- end }}
+      {{- if .Values.kubeconfig.existingSecret }}
+      volumes:
+      - name: kubeconfig
+        secret:
+          secretName: {{ .Values.kubeconfig.existingSecret }}
+      {{- end }}

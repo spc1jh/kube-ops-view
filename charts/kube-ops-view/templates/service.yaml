@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kube-ops-view.fullname" . }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "kube-ops-view.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+    {{- with .Values.service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ .Values.service.externalPort }}
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    {{- include "kube-ops-view.selectorLabels" . | nindent 4 }}
