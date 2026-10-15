@@ -1,0 +1,34 @@
+name: helm
+
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+    paths: ["charts/**"]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+
+      - name: Lint
+        run: helm lint charts/kube-ops-view
+
+      - name: Package
+        run: helm package charts/kube-ops-view
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      # the image lives at ghcr.io/<owner>/kube-ops-view, so the chart goes under /charts
+      - name: Push
+        if: github.event_name != 'pull_request'
+        run: helm push kube-ops-view-*.tgz "oci://ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/charts"

@@ -7,11 +7,12 @@ maintained fork. Most `values.yaml` keys are unchanged (`replicaCount`, `image`,
 
 ## Install
 
-Build the image first (`make docker`) and push it to a registry the cluster can pull from.
+The chart is published as an OCI artifact to GHCR on every `v*` tag (`.github/workflows/helm.yml`);
+the image defaults to `ghcr.io/spc1jh/kube-ops-view`.
 
 ```bash
-helm upgrade --install kube-ops-view charts/kube-ops-view -n ops --create-namespace \
-  --set image.repository=<registry>/kube-ops-view --set image.tag=<tag>
+helm upgrade --install kube-ops-view oci://ghcr.io/spc1jh/charts/kube-ops-view \
+  --version <chart-version> -n ops --create-namespace
 
 kubectl -n ops port-forward svc/kube-ops-view 8080:80
 ```
@@ -25,7 +26,7 @@ Mount a kubeconfig from an existing Secret (all contexts, or the ones listed in 
 ```bash
 kubectl -n ops create secret generic kov-kubeconfig --from-file=config=./kubeconfig
 helm upgrade --install kube-ops-view charts/kube-ops-view -n ops \
-  --set kubeconfig.existingSecret=kov-kubeconfig --set 'kubeconfig.contexts={tokyo,us}'
+  --set kubeconfig.existingSecret=kov-kubeconfig --set 'kubeconfig.contexts={cluster-a,cluster-b}'
 ```
 
 The pod has no `aws` CLI, so `exec` based credentials (`aws eks get-token`) do not work inside

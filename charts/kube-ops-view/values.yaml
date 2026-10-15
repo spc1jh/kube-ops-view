@@ -3,8 +3,9 @@
 replicaCount: 1
 
 image:
-  # build with `make docker` and push to a registry reachable from the cluster
-  repository: kube-ops-view
+  # published by .github/workflows/docker.yml; for a private fork/registry override this
+  # (and set imagePullSecrets)
+  repository: ghcr.io/spc1jh/kube-ops-view
   tag: latest
   pullPolicy: IfNotPresent
 
