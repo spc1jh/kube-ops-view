@@ -19,6 +19,8 @@ service:
   # labels:
   #   key: value
   type: ClusterIP
+  # fixed node port, only used for type NodePort/LoadBalancer (default: assigned by Kubernetes)
+  # nodePort: 30909
   externalPort: 80
   internalPort: 8080
 
