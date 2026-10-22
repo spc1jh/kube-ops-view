@@ -7,6 +7,8 @@ export default class Config {
         this.reloadIntervalSeconds = 0
         this.initialScale = 1.0
         this.renderer = 'auto'
+        // font size (px) of the tooltips, which are not affected by the view zoom
+        this.tooltipFontSize = 16
         // make sure we got activity at least every 20 seconds
         this.keepAliveSeconds = 20
         // always reconnect after 5 minutes
@@ -24,6 +26,7 @@ export default class Config {
         config.reloadIntervalSeconds = parseInt(params.get('reload')) || 0
         config.initialScale = parseFloat(params.get('scale')) || 1.0
         config.renderer = params.get('renderer') || 'auto'
+        config.tooltipFontSize = parseInt(params.get('tooltip')) || config.tooltipFontSize
         return config
     }
 

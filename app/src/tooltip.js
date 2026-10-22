@@ -6,7 +6,7 @@ export default class Tooltip extends Container {
         super()
         this.gfx = new Graphics()
         this.addChild(this.gfx)
-        this.text = new Text({text: '', style: {fontFamily: 'ShareTechMono', fontSize: 12, fill: 0xffffff}})
+        this.text = new Text({text: '', style: {fontFamily: 'ShareTechMono', fontSize: App.current.config.tooltipFontSize, fill: 0xffffff}})
         this.text.x = 4
         this.text.y = 4
         this.addChild(this.text)

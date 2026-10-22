@@ -18,3 +18,5 @@ Example URL: ``https://kube-ops-view.example.org/#dashboard=true;reload=600``
     Forces the fallback canvas renderer (instead of WebGL) when set to "canvas".
 ``scale``
     Set the initial view scale (``1.0`` is 100%).
+``tooltip``
+    Font size in pixels of the tooltips showing node and pod details (default ``16``). The tooltips are not affected by the view zoom, so increase this on large or high resolution screens, e.g. ``#tooltip=22``.
