@@ -1,5 +1,8 @@
 const TRUTHY_VALUES = new Set(['1', 'true'])
 
+// font sizes (px) offered by the tooltip size selector in the menu bar
+export const TOOLTIP_FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 40]
+
 export default class Config {
 
     constructor() {

@@ -5,7 +5,7 @@ import SelectBox from './selectbox'
 import {Theme, ALL_THEMES} from './themes.js'
 import {DESATURATION_FILTER} from './filters.js'
 import {JSON_delta} from './vendor/json_delta.js'
-import Config from './config.js'
+import Config, {TOOLTIP_FONT_SIZES} from './config.js'
 import {BlurFilter, Container, Graphics, Point, Text, Ticker, autoDetectRenderer} from 'pixi.js'
 import addWheelListener from './vendor/addWheelListener'
 
@@ -18,6 +18,11 @@ export default class App {
         this.config.nodeLinkUrlTemplate = config['node_link_url_template']
         this.config.podLinkUrlTemplate = config['pod_link_url_template']
         this.config.route_prefix = config['route_prefix']
+        // #tooltip=N has priority over the size chosen in the menu bar (kept in localStorage)
+        const storedTooltipFontSize = parseInt(localStorage.getItem('tooltipFontSize'))
+        if (!params.get('tooltip') && storedTooltipFontSize) {
+            this.config.tooltipFontSize = storedTooltipFontSize
+        }
 
         this.filterString = (params.get('q') && decodeURIComponent(params.get('q'))) || ''
         this.selectedClusters = new Set((params.get('clusters') || '').split(',').filter(x => x))
@@ -381,6 +386,18 @@ export default class App {
         statusFilterBox.y = 3
         menuBar.addChild(statusFilterBox.draw())
 
+        // keep a size set via #tooltip=N selectable even if it is not one of the presets
+        const tooltipSizes = Array.from(new Set([...TOOLTIP_FONT_SIZES, this.config.tooltipFontSize])).sort((a, b) => a - b)
+        const tooltipSizeOptions = tooltipSizes.map(size => {
+            return {text: 'TOOLTIP: ' + size, value: size}
+        })
+        const tooltipSizeBox = new SelectBox(tooltipSizeOptions, this.config.tooltipFontSize, function (text, value) {
+            app.changeTooltipFontSize(value)
+        })
+        tooltipSizeBox.x = 765
+        tooltipSizeBox.y = 3
+        menuBar.addChild(tooltipSizeBox.draw())
+
         this.searchText = searchText
     }
 
@@ -595,6 +612,12 @@ export default class App {
         this.statusFilterFn = newStatusFilterFunction
         localStorage.setItem('statusFilterFn', text)
         this.update()
+    }
+
+    changeTooltipFontSize(size) {
+        this.config.tooltipFontSize = size
+        this.tooltip.setFontSize(size)
+        localStorage.setItem('tooltipFontSize', size)
     }
 
     switchTheme(text, newTheme) {

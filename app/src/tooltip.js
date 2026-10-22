@@ -13,6 +13,11 @@ export default class Tooltip extends Container {
         this.visible = false
     }
 
+    setFontSize(size) {
+        this.text.style.fontSize = size
+        this.draw()
+    }
+
     setText(text) {
         this.text.text = text
         this.draw()
