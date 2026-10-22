@@ -65,7 +65,10 @@ function hsvToRgb(h, s, v) {
 }
 
 function getBarColor(usage, capacity) {
-    return hsvToRgb(Math.max(0, Math.min(1, 0.4 - (0.4 * (usage / capacity)))), 0.6, 1)
+    // pods without requests/limits/metrics have usage and capacity 0: 0 / 0 would be NaN and
+    // PixiJS 8 throws "Unable to convert color NaN", which aborts drawing the whole view
+    const ratio = capacity > 0 ? usage / capacity : (usage > 0 ? 1 : 0)
+    return hsvToRgb(Math.max(0, Math.min(1, 0.4 - (0.4 * ratio))), 0.6, 1)
 }
 
 function parseResource(v) {

@@ -1,7 +1,7 @@
 apiVersion: v2
 name: kube-ops-view
-version: 2.0.0
-appVersion: "26.10.0"
+version: 2.0.1
+appVersion: "26.10.1"
 kubeVersion: ">=1.25.0-0"
 description: Kubernetes Operational View - read-only system dashboard for multiple K8s clusters
 type: application
